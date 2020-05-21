@@ -16,11 +16,22 @@ public class SecretRenewController {
     @Resource
     private SecretRenewService secretRenewService;
     /**
+     * 传入deviceId，续期时间（可为：1y(一年)、3M（3个月）
      * @param map 续约时间。传入参数
      * @return 返回结果
      */
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(value = "/keyTime",method = RequestMethod.POST)
     public R renewTime(@RequestBody Map<String,String> map){
-        return null;
+        return secretRenewService.insertTime(map);
+    }
+
+    /**
+     * 传入deviceId,续约次数1-10000000
+     * @param map   传入参数
+     * @return      返回结果
+     */
+    @RequestMapping(value = "/keyTimes",method = RequestMethod.POST)
+    public R RenewTimes(@RequestBody Map<String,String> map){
+        return secretRenewService.insertTimes(map);
     }
 }

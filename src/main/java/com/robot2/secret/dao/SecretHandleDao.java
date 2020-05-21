@@ -1,11 +1,9 @@
 package com.robot2.secret.dao;
 
+import com.robot2.secret.VO.InfoFormVO;
 import com.robot2.secret.entity.BaseInfo;
 import com.robot2.secret.entity.Secret;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -112,4 +110,42 @@ public interface SecretHandleDao {
 
     @Update("UPDATE  robot_info_robot SET online=0 where secretId=#{secretId}")
     void offline_robot(Integer secretId);
+
+
+    /**
+     *  平台/机器人删除模块
+     */
+    //批量删除机器人/平台密钥表
+    @Delete({"<script>"
+            +"delete from ${formSecretName} where secret in "
+            +"<foreach item='item' index='index' collection='secret' open='(' separator=',' close=')'>"
+            +"#{item}"
+            +"</foreach>"
+            +"</script>"
+    })
+    int deletesecretBatch(@Param("secret") List<String> secret, @Param("formSecretName")String formSecretName);
+//批量删除机器人/平台信息表
+    @Delete({"<script>"
+            +"delete from ${formInfoName} where deviceId in"
+            +"<foreach item='item' index='index' collection='deviceId' open='(' separator=',' close=')'>"
+            +"#{item}"
+            +"</foreach>"
+            +"</script>"
+    })
+    int formInfodeleteBatch(@Param("deviceId") List<String> deviceIdList, @Param("formInfoName") String formInfoName);
+    //批量查询secret通过deviceId
+    @Select("<script>"
+            + "select secret from ${formSecretName} where id in (select secretId from ${formInfoName} where deviceId in"
+            + "<foreach item='item' index='index' collection='deviceId' open='(' separator=',' close=')'>"
+            + "#{item}"
+            + "</foreach>)"
+            + "</script>")
+    List<String> querySecretByDeviceId(@Param("formInfoName") String formInfoName, @Param("formSecretName") String formSecretName, @Param("deviceId") List<String> deviceId);
+    //删除secret表信息
+    @Delete("delete from ${formSecretName} where secret=#{secret}" )
+    int deleteSecret(@Param("formSecretName") String formSecretName, @Param("secret") String secret);
+
+    //修改info表信息
+    @Update("UPDATE  ${formInfoName} SET name=#{info.name},phone=#{info.phone},email=#{info.email},address=#{info.address},org1=#{info.org1},org2=#{info.org2} where deviceId=#{info.deviceId}")
+    int updateInfo(@Param("info") InfoFormVO info, @Param("formInfoName") String formInfoName);
 }

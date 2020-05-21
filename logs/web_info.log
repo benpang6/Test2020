@@ -1,0 +1,21 @@
+2020-05-21 09:07:08.730 [main] INFO  com.robot2.secret.SecretApplication - Starting SecretApplication on DESKTOP-A1PIIM2 with PID 11176 (F:\Robot2.0\Robot\target\classes started by zhpan in F:\Robot2.0\Robot)
+2020-05-21 09:07:08.734 [main] INFO  com.robot2.secret.SecretApplication - No active profile set, falling back to default profiles: default
+2020-05-21 09:07:09.125 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode!
+2020-05-21 09:07:09.127 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2020-05-21 09:07:09.152 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 11ms. Found 0 Redis repository interfaces.
+2020-05-21 09:07:09.539 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+2020-05-21 09:07:09.546 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2020-05-21 09:07:09.546 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-05-21 09:07:09.546 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.33]
+2020-05-21 09:07:09.603 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/robot/secure] - Initializing Spring embedded WebApplicationContext
+2020-05-21 09:07:09.604 [main] INFO  org.springframework.web.context.ContextLoader - Root WebApplicationContext: initialization completed in 838 ms
+2020-05-21 09:07:10.004 [main] INFO  o.s.scheduling.concurrent.ThreadPoolTaskExecutor - Initializing ExecutorService 'applicationTaskExecutor'
+2020-05-21 09:07:10.150 [main] INFO  o.s.scheduling.concurrent.ThreadPoolTaskScheduler - Initializing ExecutorService 'taskScheduler'
+2020-05-21 09:07:10.174 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2020-05-21 09:07:10.188 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path '/robot/secure'
+2020-05-21 09:07:10.190 [main] INFO  com.robot2.secret.SecretApplication - Started SecretApplication in 1.772 seconds (JVM running for 2.431)
+2020-05-21 09:16:53.509 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/robot/secure] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2020-05-21 09:16:53.511 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2020-05-21 09:16:53.517 [http-nio-8080-exec-1] INFO  org.springframework.web.servlet.DispatcherServlet - Completed initialization in 6 ms
+2020-05-21 09:16:53.576 [http-nio-8080-exec-1] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2020-05-21 09:16:53.931 [http-nio-8080-exec-1] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.

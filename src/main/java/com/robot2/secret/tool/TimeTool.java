@@ -116,11 +116,11 @@ public class TimeTool {
      * @return
      */
     public static  int DateTimeCompare(LocalDateTime localDateTime1,LocalDateTime localDateTime2){
-        if(localDateTime1.isBefore(localDateTime2)){
+        if(localDateTime1.isBefore(localDateTime2)){  //说明过期
             return 2;
-        }else if(localDateTime1.isAfter(localDateTime2)){
+        }else if(localDateTime1.isAfter(localDateTime2)){  //说明没过期
             return 1;
-        }else{
+        }else{  //说明马上过期
             return 0;
         }
     }

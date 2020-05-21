@@ -1,24 +1,22 @@
 package com.robot2.secret.service.impl;
 
+import com.robot2.secret.VO.InfoFormDeleteVO;
+import com.robot2.secret.VO.InfoFormVO;
 import com.robot2.secret.dao.SecretHandleDao;
 import com.robot2.secret.entity.BaseInfo;
 import com.robot2.secret.entity.Secret;
 import com.robot2.secret.service.SecretHandleService;
-import com.robot2.secret.tool.KeyTool;
-import com.robot2.secret.tool.TimeTool;
+import com.robot2.secret.tool.*;
 import com.robot2.secret.tool.resultool.R;
-import com.robot2.secret.tool.RedisTool;
-import com.robot2.secret.tool.SendEmailTool;
 import com.robot2.secret.tool.resultool.Renum;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * (RobotSecret)表服务实现类
@@ -290,6 +288,36 @@ public class SecretHandleServiceImpl implements SecretHandleService {
     }
 
     /**
+     * @param secret 秘钥
+     * @param type   注册类型
+     * @return 存在该秘钥返回true;不存在返回false;
+     * 判断redis中如果不存在secret
+     */
+
+    public boolean isNotExist(String secret, @NotNull String type) {
+        boolean b = false;
+        //先去redis里查，如果没有，再去mysql查。如果还没有，证明可以注册，返回true；否则，返回false
+        //如果b==false，则让if==true，执行代码。否则不执行if
+        switch (type) {
+            case "1":
+                b = this.redisTool.hHasKey("robot_secret_platform", secret);
+
+                break;
+            case "2":
+                b = this.redisTool.hHasKey("robot_secret_robot", secret);
+
+                break;
+            case "3":
+                b = this.redisTool.hHasKey("robot_secret_user", secret);
+
+                break;
+        }
+
+        return !b;
+
+    }
+
+    /**
      * 校验服务调用次数
      *
      * @param secret 秘钥
@@ -356,6 +384,182 @@ public class SecretHandleServiceImpl implements SecretHandleService {
         platformSecretList=this.secretHandleDao.queryOnlineFinishTime_platform();
         onlineProcess(platformSecretList,"platform");
     }
+
+    /**
+     *  删除数据库信息和秘钥
+     *  删除redis中的秘钥
+     * @param infoFormDeleteVO  得到type 平台 p  机器人r
+     *                          获得deviceId集合
+     * @return
+     */
+    @Transactional
+    @Override
+    public R deleteSecretAndInfo(InfoFormDeleteVO infoFormDeleteVO) {
+        /*
+         * 判断集合是否有数据
+         * 有数据：
+         *       1.判断类型
+         *       2.查询密匙
+         * 没数据：
+         *       返回异常信息
+         */
+//        if(deviceIdList.isEmpty()){
+//            return R.setResult(Renum.DELETE_NOT_CHOICE);
+//        }
+        if(infoFormDeleteVO==null){
+            return R.setResult(Renum.NULL_POINT);
+        }
+//        String[] deviceId = infoFormDeleteVO.getDeviceId();
+//        List<String> deviceIdList = Arrays.asList(deviceId);
+        List<String> deviceIdList = infoFormDeleteVO.getDeviceId();
+       // System.out.println(deviceIdList.size());
+        String type = infoFormDeleteVO.getType();
+        return (deviceIdList.size()==0)?
+                R.setResult(Renum.DELETE_NOT_CHOICE):
+                typeHandleAndSearchSecret(deviceIdList,type);
+    }
+
+    /**
+     * 处理类型和查询密钥方法
+     * @param deviceIdList   deviceId集合
+     * @param type           类型：平台/机器人   平台：p 机器人：r
+     * @return
+     */
+    private R typeHandleAndSearchSecret(List<String> deviceIdList, String type) {
+        //定义三个个变量接收机器人表名/平台表名/对应的标识
+        String formInfoName = "";
+        String formSecretName = "";
+        String typeNum = "";
+        //根据不同的类型进行处理
+        switch (type) {
+            case "r":
+                formInfoName = "robot_info_robot";
+                formSecretName = "robot_secret_robot";
+                typeNum = "2";
+                break;
+            case "p":
+                formInfoName = "robot_info_platform";
+                formSecretName = "robot_secret_platform";
+                typeNum = "1";
+                break;
+            default:
+                if(StringUtils.isEmpty(type)){
+                    return R.error().message("type不能为空");
+                }
+                return R.setResult(Renum.PARAM_ERROR);
+        }
+        //判断数据是否合法，如果有一个不合法，直接抛出异常结束
+        for(String deviceId:deviceIdList){
+            if(!deviceId.matches("[\\d]{22}")){
+                throw new RuntimeException("deviceId不符合要求");
+            }
+
+        }
+        //根据type得知到哪个数据库表查询，并获取secret存入secretList集合
+        List<String> secretList = secretHandleDao
+                .querySecretByDeviceId(
+                        formInfoName,
+                        formSecretName,
+                        deviceIdList);
+        //查询表中数据是否存在，如果不存在则返回数据不存在！
+        return secretList.isEmpty()?
+                R.setResult(Renum.DELETE_NOT_AVALIABLE_NUMBER):
+                deletePlantFormOrRobot(
+                        deviceIdList,
+                        secretList,
+                        formInfoName,
+                        formSecretName,
+                        typeNum);
+    }
+
+    /**
+     * 删除平台/机器人数据
+     * 删除平台/机器人缓存
+     * 返回最总结果
+     * @param deviceIdList   deviceId集合
+     * @param secretList     密钥集合
+     * @param formInfoName   基本信息表名
+     * @param formSecretName 密钥信息表名
+     * @param typeNum       平台/机器人标识  平台：1  机器人：2
+     * @return
+     */
+    private R deletePlantFormOrRobot(List<String> deviceIdList,
+                                     List<String> secretList,
+                                     String formInfoName,
+                                     String formSecretName,
+                                     String typeNum) {
+
+        //批量删除mysql中平台/机器人信息
+        int infoDeleteNum = secretHandleDao.formInfodeleteBatch(deviceIdList, formInfoName);
+        //批量删除mysql中平台/机器人秘钥信息
+        int secretDeletNum = secretHandleDao.deletesecretBatch(secretList, formSecretName);
+        if(infoDeleteNum==0||secretDeletNum==0){
+            return R.error().message("数据已不存在！");
+        }
+        /*
+         *批量删除redis中机器人秘钥信息和调用次数
+         * 循环遍历删除redis中的数据
+         */
+        for(String secret:secretList){
+            redisTool.hdel(formSecretName, secret);
+            if(!isNotPool(secret,typeNum)){
+                secretHandleDao.deleteSecret(secret,formSecretName);
+            }
+        }
+        return R.ok().message("成功删除"+infoDeleteNum+"条数据");
+    }
+
+    /**
+     * 修改模块
+     * 对数据进行判断
+     * @param info
+     * @return
+     */
+    @Override
+    public R plantFormAndRobotUpdate(InfoFormVO info) {
+        if(info==null||info.equals("")){
+            return R.error().message("修改失败,数据不能为空");
+        }
+        String deviceId = info.getDeviceId();
+        if(!deviceId.matches("[\\d]{22}")){
+            throw new RuntimeException("deviceId不符合要求");
+        }
+        String type = info.getType();
+        String formInfoName = "";
+        switch (type) {
+            case "p":
+                formInfoName = "robot_info_platform";
+                break;
+            case "r":
+                formInfoName = "robot_info_robot";
+                break;
+            default:
+                if (StringUtils.isEmpty(type)) {
+                    throw new RuntimeException("type不能为空");
+                }
+                throw new RuntimeException("请传入正确的类型");
+        }
+        String phone = info.getPhone();
+        if(!RegexTool.isMobile(phone)){
+            return R.error().message("手机号不合法");
+        }
+        String email = info.getEmail();
+        if(!RegexTool.isEmail(email)){
+            return R.error().message("邮箱不合法");
+        }
+        return infoHandle(info,formInfoName);
+    }
+
+    /**
+     * 数据处理
+     * 修改数据信息
+     * @param info
+     */
+    private R infoHandle(InfoFormVO info ,String formInfoName) {
+        int row = secretHandleDao.updateInfo(info,formInfoName);
+        return row>0?R.ok().message("修改成功！"):R.error().message("数据已不存在！");
+    }
+
 
     private void onlineProcess(List<Secret> secretList, String name) {
         if(secretList.size()!=0) {

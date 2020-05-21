@@ -1,11 +1,16 @@
 package com.robot2.secret.controller;
 
+
+import com.robot2.secret.VO.InfoFormDeleteVO;
+import com.robot2.secret.VO.InfoFormVO;
 import com.robot2.secret.entity.BaseInfo;
 import com.robot2.secret.service.SecretHandleService;
 import com.robot2.secret.tool.resultool.R;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * (RobotSecret/RobotInfo)表控制层,
@@ -49,6 +54,25 @@ public class SecretHandleController {
     @RequestMapping(value = "/check/number",method = RequestMethod.GET)
     public int checkSecretNumber(String secret){
         return this.robotSecretService.checkSecretNumber(secret);
+    }
+
+    /**
+     *删除机器人/平台信息
+     * type="r"或type="p"
+     */
+    @RequestMapping(value = "/platFormAndRobot/delete",method = RequestMethod.POST)
+    public R plantFormAndRobotDelete(@RequestBody InfoFormDeleteVO infoFormDeleteVO) {
+        return robotSecretService.deleteSecretAndInfo(infoFormDeleteVO);
+    }
+
+    /**
+     * 更改机器人/平台信息
+     * @Param info
+     * @return
+     */
+    @RequestMapping(value = "/platFormAndRobot/update",method=RequestMethod.POST)
+    public R plantFormAndRobotUpdate(@RequestBody InfoFormVO info) {
+            return robotSecretService.plantFormAndRobotUpdate(info);
     }
 
     /**

@@ -1,7 +1,11 @@
 package com.robot2.secret.service;
 
+import com.robot2.secret.VO.InfoFormDeleteVO;
+import com.robot2.secret.VO.InfoFormVO;
 import com.robot2.secret.entity.BaseInfo;
 import com.robot2.secret.tool.resultool.R;
+
+import java.util.List;
 
 /**
  * (RobotSecret)表服务接口
@@ -19,4 +23,8 @@ public interface SecretHandleService {
 
    void checkRobotSecretTime();
    void checkPlatformSecretTime();
+
+    R deleteSecretAndInfo(InfoFormDeleteVO infoFormDeleteVO);
+
+    R plantFormAndRobotUpdate(InfoFormVO info);
 }

@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 
+
 import javax.sql.DataSource;
 
 /**
@@ -65,6 +66,8 @@ public class MySqlConfig {
     public SqlSessionTemplate sqlSessionTemplate(@Qualifier("primarySqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
+
+
 }
 
 
